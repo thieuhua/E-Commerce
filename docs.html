@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>E-Commerce API Docs</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #161b27; --bg3: #1e2535;
+    --border: #2a3245; --text: #e2e8f0; --muted: #7c8db5;
+    --accent: #4f8ef7; --green: #34d399; --orange: #fb923c;
+    --red: #f87171; --purple: #a78bfa; --yellow: #fbbf24;
+    --cyan: #22d3ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  #sidebar { width: 260px; min-width: 260px; background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+  #sidebar-header { padding: 20px 16px 12px; border-bottom: 1px solid var(--border); }
+  #sidebar-header h1 { font-size: 15px; font-weight: 700; color: var(--text); }
+  #sidebar-header p { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .search-box { margin: 10px 12px; padding: 6px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; width: calc(100% - 24px); outline: none; }
+  .search-box::placeholder { color: var(--muted); }
+  .nav-group { margin-bottom: 4px; }
+  .nav-group-label { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 16px; cursor: pointer; border-left: 2px solid transparent; transition: background .15s; font-size: 12.5px; color: var(--muted); }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(79,142,247,.08); border-left-color: var(--accent); color: var(--accent); }
+  .nav-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-left: auto; }
+
+  /* Main */
+  #main { flex: 1; overflow-y: auto; padding: 0; }
+  #content { max-width: 960px; margin: 0 auto; padding: 32px 28px; }
+
+  /* Section */
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .section-desc { color: var(--muted); line-height: 1.6; margin-bottom: 24px; font-size: 13px; }
+
+  /* Info cards */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .info-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-card h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .info-card p { font-size: 13px; font-weight: 600; color: var(--text); }
+  .info-card code { font-size: 12px; color: var(--accent); font-family: monospace; }
+
+  /* Endpoint */
+  .endpoint { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+  .ep-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; transition: background .15s; }
+  .ep-header:hover { background: var(--bg3); }
+  .method { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; min-width: 52px; text-align: center; font-family: monospace; }
+  .GET    { background: rgba(52,211,153,.15); color: var(--green); }
+  .POST   { background: rgba(79,142,247,.15); color: var(--accent); }
+  .PATCH  { background: rgba(251,146,60,.15);  color: var(--orange); }
+  .DELETE { background: rgba(248,113,113,.15); color: var(--red); }
+  .ep-path { font-family: monospace; font-size: 13px; color: var(--text); flex: 1; }
+  .ep-desc { font-size: 12px; color: var(--muted); }
+  .auth-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(167,139,250,.15); color: var(--purple); white-space: nowrap; }
+  .admin-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(251,191,36,.15); color: var(--yellow); white-space: nowrap; }
+  .ep-body { display: none; border-top: 1px solid var(--border); padding: 16px; }
+  .ep-body.open { display: block; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+  th { text-align: left; padding: 6px 10px; background: var(--bg3); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(42,50,69,.6); vertical-align: top; }
+  td:first-child { font-family: monospace; color: var(--cyan); font-size: 12px; }
+  td:last-child { color: var(--muted); line-height: 1.5; }
+  .required { color: var(--red); font-size: 10px; margin-left: 4px; }
+  .optional { color: var(--muted); font-size: 10px; }
+
+  /* Code blocks */
+  .code-block { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-top: 10px; overflow-x: auto; }
+  .code-block pre { font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; color: #a8b4d8; }
+  .block-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 14px; margin-bottom: 4px; font-weight: 600; }
+
+  /* Subsection */
+  h3 { font-size: 13px; font-weight: 700; margin: 20px 0 10px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  h3::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Flow */
+  .flow { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+  .flow-step { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; }
+  .flow-num { min-width: 24px; height: 24px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .flow-step p { font-size: 13px; line-height: 1.5; }
+  .flow-step code { background: var(--bg3); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; color: var(--accent); }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chip { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); }
+
+  /* Alert */
+  .alert { padding: 10px 14px; border-radius: 6px; font-size: 12.5px; margin: 10px 0; line-height: 1.5; }
+  .alert-blue  { background: rgba(79,142,247,.1);  border-left: 3px solid var(--accent);  color: #a8c8ff; }
+  .alert-yellow{ background: rgba(251,191,36,.1);  border-left: 3px solid var(--yellow); color: #fde68a; }
+  .alert-red   { background: rgba(248,113,113,.1); border-left: 3px solid var(--red);    color: #fca5a5; }
+  .alert-green { background: rgba(52,211,153,.1);  border-left: 3px solid var(--green);  color: #6ee7b7; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>🛒 E-Commerce API</h1>
+    <p>v1.0 · Node.js + Express + MySQL</p>
+  </div>
+  <input class="search-box" type="text" placeholder="🔍 Tìm endpoint..." id="search" oninput="filterEndpoints(this.value)"/>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Tổng quan</div>
+    <div class="nav-item active" onclick="show('overview')">📖 Giới thiệu</div>
+    <div class="nav-item" onclick="show('setup')">⚙️ Setup & Cài đặt</div>
+    <div class="nav-item" onclick="show('auth-flow')">🔐 Xác thực (JWT)</div>
+    <div class="nav-item" onclick="show('errors')">❌ Xử lý lỗi</div>
+    <div class="nav-item" onclick="show('flows')">🔄 Luồng nghiệp vụ</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">API Endpoints</div>
+    <div class="nav-item" onclick="show('ep-auth')">👤 Auth <span class="nav-badge" style="background:rgba(52,211,153,.15);color:var(--green)">5</span></div>
+    <div class="nav-item" onclick="show('ep-user')">🙍 User <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">5</span></div>
+    <div class="nav-item" onclick="show('ep-address')">📍 Address <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">6</span></div>
+    <div class="nav-item" onclick="show('ep-catalog')">🗂 Category / Brand <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">8</span></div>
+    <div class="nav-item" onclick="show('ep-product')">📦 Product <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">6</span></div>
+    <div class="nav-item" onclick="show('ep-cart')">🛒 Cart <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">5</span></div>
+    <div class="nav-item" onclick="show('ep-order')">📋 Order <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">6</span></div>
+    <div class="nav-item" onclick="show('ep-payment')">💳 Payment <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">5</span></div>
+    <div class="nav-item" onclick="show('ep-shipment')">🚚 Shipment <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">3</span></div>
+    <div class="nav-item" onclick="show('ep-review')">⭐ Review <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">4</span></div>
+    <div class="nav-item" onclick="show('ep-coupon')">🎫 Coupon <span class="nav-badge" style="background:rgba(79,142,247,.15);color:var(--accent)">5</span></div>
+  </div>
+</div>
+
+<div id="main">
+<div id="content">
+
+<!-- OVERVIEW -->
+<div id="overview" class="section active">
+  <div class="section-title">Giới thiệu dự án</div>
+  <div class="section-desc">Website thương mại điện tử B2C — một doanh nghiệp bán sản phẩm trực tiếp cho khách hàng. Tài liệu này dành cho đội Frontend để tích hợp API từ đầu.</div>
+
+  <div class="info-grid">
+    <div class="info-card"><h4>Base URL (Dev)</h4><code>http://localhost:3000/api</code></div>
+    <div class="info-card"><h4>Base URL (Prod)</h4><code>https://yourdomain.com/api</code></div>
+    <div class="info-card"><h4>Content-Type</h4><p>application/json</p></div>
+    <div class="info-card"><h4>Upload Content-Type</h4><p>multipart/form-data</p></div>
+    <div class="info-card"><h4>Auth</h4><p>Bearer JWT (Access Token)</p></div>
+    <div class="info-card"><h4>Static files</h4><code>/uploads/&lt;filename&gt;</code></div>
+  </div>
+
+  <h3>Response format chuẩn</h3>
+  <div class="block-label">Thành công</div>
+  <div class="code-block"><pre>{
+  "success": true,
+  "message": "Success",
+  "data": { ... }         <span style="color:#4a5580">// object hoặc array</span>
+}</pre></div>
+  <div class="block-label">Thành công có phân trang</div>
+  <div class="code-block"><pre>{
+  "success": true,
+  "data": [ ... ],
+  "pagination": {
+    "total": 120,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 6
+  }
+}</pre></div>
+  <div class="block-label">Lỗi</div>
+  <div class="code-block"><pre>{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [            <span style="color:#4a5580">// chỉ có khi là lỗi validation</span>
+    { "field": "email", "message": "must be a valid email" }
+  ]
+}</pre></div>
+
+  <h3>Modules đã triển khai</h3>
+  <div class="chips">
+    <span class="chip">✅ Auth</span><span class="chip">✅ User Profile</span>
+    <span class="chip">✅ Address</span><span class="chip">✅ Category</span>
+    <span class="chip">✅ Brand</span><span class="chip">✅ Product</span>
+    <span class="chip">✅ Cart</span><span class="chip">✅ Order</span>
+    <span class="chip">✅ Payment</span><span class="chip">✅ Shipment</span>
+    <span class="chip">✅ Review</span><span class="chip">✅ Coupon</span>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setup" class="section">
+  <div class="section-title">Setup & Chạy local</div>
+  <div class="section-desc">Hướng dẫn cho Frontend dev chạy API local để phát triển.</div>
+
+  <h3>Yêu cầu hệ thống</h3>
+  <div class="chips">
+    <span class="chip">Node.js ≥ 18</span>
+    <span class="chip">MySQL 8</span>
+    <span class="chip">Redis 7</span>
+    <span class="chip">npm / yarn</span>
+  </div>
+
+  <h3>Các bước</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><p>Clone repo backend, chạy <code>npm install</code></p></div>
+    <div class="flow-step"><div class="flow-num">2</div><p>Copy <code>.env.example</code> thành <code>.env</code> và điền đủ DB_PASSWORD, JWT secrets</p></div>
+    <div class="flow-step"><div class="flow-num">3</div><p>Tạo database: <code>CREATE DATABASE ecommerce_db CHARACTER SET utf8mb4;</code></p></div>
+    <div class="flow-step"><div class="flow-num">4</div><p>Import schema: <code>mysql -u root -p ecommerce_db &lt; schema.sql</code></p></div>
+    <div class="flow-step"><div class="flow-num">5</div><p>Chạy Redis local (Docker: <code>docker run -d -p 6379:6379 redis</code>)</p></div>
+    <div class="flow-step"><div class="flow-num">6</div><p>Khởi động server: <code>npm run dev</code> → <code>http://localhost:3000</code></p></div>
+    <div class="flow-step"><div class="flow-num">7</div><p>Kiểm tra: <code>GET /health</code> trả <code>{ "status": "ok" }</code> là thành công</p></div>
+  </div>
+
+  <h3>CORS cho Frontend</h3>
+  <div class="alert alert-blue">Thêm <strong>CLIENT_URL=http://localhost:5173</strong> vào <code>.env</code> (Vite default port). Khi build production thay bằng domain thực tế.</div>
+
+  <h3>Thư mục ảnh upload</h3>
+  <div class="alert alert-yellow">Tạo thư mục <code>uploads/</code> ở root project. Ảnh truy cập qua <code>http://localhost:3000/uploads/&lt;filename&gt;</code>. Frontend chỉ cần lưu path <code>/uploads/xxx.jpg</code> rồi ghép base URL khi hiển thị.</div>
+</div>
+
+<!-- AUTH FLOW -->
+<div id="auth-flow" class="section">
+  <div class="section-title">Xác thực JWT</div>
+  <div class="section-desc">API dùng cặp Access Token (ngắn hạn) + Refresh Token (dài hạn). Frontend cần hiểu rõ cơ chế này để xử lý đúng.</div>
+
+  <h3>Luồng đăng nhập</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><p>Gọi <code>POST /auth/login</code> → nhận <code>accessToken</code> (15 phút) + <code>refreshToken</code> (7 ngày)</p></div>
+    <div class="flow-step"><div class="flow-num">2</div><p>Lưu <code>accessToken</code> vào memory (biến JS / Zustand). Lưu <code>refreshToken</code> vào <code>localStorage</code> hoặc httpOnly cookie</p></div>
+    <div class="flow-step"><div class="flow-num">3</div><p>Mọi request cần auth: thêm header <code>Authorization: Bearer &lt;accessToken&gt;</code></p></div>
+    <div class="flow-step"><div class="flow-num">4</div><p>Khi nhận lỗi <code>401 Token expired</code>: gọi <code>POST /auth/refresh</code> với <code>refresh_token</code> → nhận accessToken mới</p></div>
+    <div class="flow-step"><div class="flow-num">5</div><p>Retry request ban đầu với accessToken mới. Nếu refresh cũng fail → redirect về <code>/login</code></p></div>
+  </div>
+
+  <h3>Axios interceptor mẫu</h3>
+  <div class="code-block"><pre>import axios from 'axios'
+
+const api = axios.create({ baseURL: 'http://localhost:3000/api' })
+
+<span style="color:#4a5580">// Gắn accessToken vào mọi request</span>
+api.interceptors.request.use(cfg => {
+  const token = window.__accessToken  <span style="color:#4a5580">// lưu trong biến module</span>
+  if (token) cfg.headers.Authorization = `Bearer ${token}`
+  return cfg
+})
+
+<span style="color:#4a5580">// Tự động refresh khi 401</span>
+api.interceptors.response.use(
+  res => res,
+  async err => {
+    const original = err.config
+    if (err.response?.status === 401 && !original._retry) {
+      original._retry = true
+      const rt = localStorage.getItem('refreshToken')
+      const { data } = await api.post('/auth/refresh', { refresh_token: rt })
+      window.__accessToken = data.data.accessToken
+      localStorage.setItem('refreshToken', data.data.refreshToken)
+      original.headers.Authorization = `Bearer ${window.__accessToken}`
+      return api(original)
+    }
+    return Promise.reject(err)
+  }
+)
+
+export default api</pre></div>
+
+  <h3>Phân quyền</h3>
+  <table>
+    <tr><th>Role</th><th>Mô tả</th><th>Endpoint được phép</th></tr>
+    <tr><td>customer</td><td>Khách hàng thường</td><td>Xem sản phẩm, giỏ hàng, đặt hàng, đánh giá của mình</td></tr>
+    <tr><td>staff</td><td>Nhân viên</td><td>Xem đơn hàng, cập nhật trạng thái vận chuyển, quản lý sản phẩm</td></tr>
+    <tr><td>admin</td><td>Quản trị viên</td><td>Toàn quyền bao gồm cả xóa, phân quyền user</td></tr>
+  </table>
+  <div class="alert alert-yellow">API trả <code>403 Forbidden</code> nếu role không đủ. Frontend cần ẩn/hiện menu admin dựa trên <code>user.role</code> lưu sau khi login.</div>
+</div>
+
+<!-- ERRORS -->
+<div id="errors" class="section">
+  <div class="section-title">Xử lý lỗi</div>
+  <div class="section-desc">Danh sách HTTP status code API có thể trả về và cách Frontend nên xử lý.</div>
+  <table>
+    <tr><th>Status</th><th>Ý nghĩa</th><th>Frontend nên làm gì</th></tr>
+    <tr><td>400</td><td>Bad Request / Validation failed</td><td>Hiện lỗi từng field dưới input (dùng <code>errors[]</code>)</td></tr>
+    <tr><td>401</td><td>Unauthorized / Token expired</td><td>Thử refresh token → nếu fail thì redirect /login</td></tr>
+    <tr><td>403</td><td>Forbidden (thiếu quyền)</td><td>Hiện thông báo "Bạn không có quyền thực hiện"</td></tr>
+    <tr><td>404</td><td>Not found</td><td>Hiện trang 404 hoặc toast "Không tìm thấy"</td></tr>
+    <tr><td>409</td><td>Conflict (trùng email, đã review...)</td><td>Hiện thông báo cụ thể từ <code>message</code></td></tr>
+    <tr><td>429</td><td>Rate limit (quá nhiều request)</td><td>Hiện "Vui lòng thử lại sau"</td></tr>
+    <tr><td>500</td><td>Server error</td><td>Hiện toast lỗi chung, log chi tiết ra console</td></tr>
+  </table>
+</div>
+
+<!-- FLOWS -->
+<div id="flows" class="section">
+  <div class="section-title">Luồng nghiệp vụ chính</div>
+  <div class="section-desc">Các luồng Frontend cần implement theo đúng thứ tự API call.</div>
+
+  <h3>🛒 Luồng mua hàng (Happy path)</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><p>Khách duyệt: <code>GET /categories</code> + <code>GET /products?category_id=&search=&page=</code></p></div>
+    <div class="flow-step"><div class="flow-num">2</div><p>Xem chi tiết: <code>GET /products/:id</code> → hiện ảnh, mô tả, giá, stock</p></div>
+    <div class="flow-step"><div class="flow-num">3</div><p>Thêm giỏ: <code>POST /cart/items</code> → response trả về cart đầy đủ, cập nhật UI ngay</p></div>
+    <div class="flow-step"><div class="flow-num">4</div><p>Xem giỏ: <code>GET /cart</code> → hiện items + <code>total</code></p></div>
+    <div class="flow-step"><div class="flow-num">5</div><p>Kiểm tra coupon (nếu có): <code>GET /coupons/check?code=SALE10&subtotal=500000</code></p></div>
+    <div class="flow-step"><div class="flow-num">6</div><p>Chọn địa chỉ: <code>GET /addresses</code> → user chọn hoặc tạo mới <code>POST /addresses</code></p></div>
+    <div class="flow-step"><div class="flow-num">7</div><p>Đặt hàng: <code>POST /orders</code> với <code>address_id</code> + <code>coupon_code</code> (optional) → nhận <code>order_id</code></p></div>
+    <div class="flow-step"><div class="flow-num">8</div><p>Tạo payment: <code>POST /payments/order/:orderId/initiate</code> với <code>method</code></p></div>
+    <div class="flow-step"><div class="flow-num">9</div><p>Redirect trang xác nhận đơn hàng, hiện trạng thái <code>pending</code></p></div>
+  </div>
+
+  <h3>📦 Luồng theo dõi đơn hàng</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><p><code>GET /orders/my</code> → danh sách đơn của user hiện tại</p></div>
+    <div class="flow-step"><div class="flow-num">2</div><p><code>GET /orders/my/:id</code> → chi tiết đơn gồm items, địa chỉ</p></div>
+    <div class="flow-step"><div class="flow-num">3</div><p><code>GET /shipments/order/:orderId</code> → tracking_code, carrier, status giao hàng</p></div>
+    <div class="flow-step"><div class="flow-num">4</div><p>Nếu status = <code>pending/confirmed</code>: hiện nút "Hủy đơn" → <code>PATCH /orders/my/:id/cancel</code></p></div>
+  </div>
+
+  <h3>⭐ Luồng đánh giá sản phẩm</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><p>Chỉ hiện form review khi đơn hàng có status <code>delivered</code></p></div>
+    <div class="flow-step"><div class="flow-num">2</div><p><code>POST /reviews/product/:productId</code> với rating (1-5) + comment</p></div>
+    <div class="flow-step"><div class="flow-num">3</div><p>API tự kiểm tra user đã mua và nhận hàng chưa, nếu chưa trả 403</p></div>
+  </div>
+
+  <h3>Order status flow</h3>
+  <div class="chips">
+    <span class="chip" style="color:var(--yellow)">pending</span>
+    <span style="color:var(--muted)">→</span>
+    <span class="chip" style="color:var(--accent)">confirmed</span>
+    <span style="color:var(--muted)">→</span>
+    <span class="chip" style="color:var(--orange)">processing</span>
+    <span style="color:var(--muted)">→</span>
+    <span class="chip" style="color:var(--purple)">shipping</span>
+    <span style="color:var(--muted)">→</span>
+    <span class="chip" style="color:var(--green)">delivered</span>
+  </div>
+  <div class="chips">
+    <span class="chip" style="color:var(--red)">cancelled</span>
+    <span class="chip" style="color:var(--muted)">refunded</span>
+  </div>
+  <div class="alert alert-blue">Customer chỉ có thể huỷ khi status là <strong>pending</strong> hoặc <strong>confirmed</strong>. Các chuyển trạng thái khác do Admin/Staff thực hiện.</div>
+</div>
+
+<!-- EP: AUTH -->
+<div id="ep-auth" class="section">
+  <div class="section-title">Auth Endpoints</div>
+  <div class="section-desc">Đăng ký, đăng nhập, quản lý token. Không cần auth header (trừ logout, me).</div>
+
+  <!-- POST /auth/register -->
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="ep-path">/auth/register</span>
+      <span class="ep-desc">Đăng ký tài khoản mới</span>
+    </div>
+    <div class="ep-body">
+      <div class="block-label">Request Body</div>
+      <table>
+        <tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+        <tr><td>username <span class="required">*</span></td><td>string</td><td>3-50 ký tự, chỉ alphanumeric</td></tr>
+        <tr><td>email <span class="required">*</span></td><td>string</td><td>Email hợp lệ</td></tr>
+        <tr><td>password <span class="required">*</span></td><td>string</td><td>Tối thiểu 8 ký tự</td></tr>
+        <tr><td>full_name <span class="required">*</span></td><td>string</td><td>2-100 ký tự</td></tr>
+        <tr><td>phone <span class="optional">opt</span></td><td>string</td><td>9-11 chữ số</td></tr>
+      </table>
+      <div class="block-label">Response 201</div>
+      <div class="code-block"><pre>{
+  "data": {
+    "user": { "user_id": 1, "username": "john", "email": "john@mail.com", "role": "customer" },
+    "accessToken": "eyJ...",
+    "refreshToken": "eyJ..."
+  }
+}</pre></div>
+    </div>
+  </div>
+
+  <!-- POST /auth/login -->
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="ep-path">/auth/login</span>
+      <span class="ep-desc">Đăng nhập</span>
+    </div>
+    <div class="ep-body">
+      <div class="block-label">Request Body</div>
+      <table>
+        <tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+        <tr><td>email <span class="required">*</span></td><td>string</td><td>Email đã đăng ký</td></tr>
+        <tr><td>password <span class="required">*</span></td><td>string</td><td>Mật khẩu</td></tr>
+      </table>
+      <div class="block-label">Response 200</div>
+      <div class="code-block"><pre>{ "data": { "user": {...}, "accessToken": "eyJ...", "refreshToken": "eyJ..." } }</pre></div>
+    </div>
+  </div>
+
+  <!-- POST /auth/refresh -->
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="ep-path">/auth/refresh</span>
+      <span class="ep-desc">Lấy access token mới</span>
+    </div>
+    <div class="ep-body">
+      <div class="block-label">Request Body</div>
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>refresh_token <span class="required">*</span></td><td>string</td><td>Refresh token hiện tại</td></tr></table>
+      <div class="block-label">Response 200</div>
+      <div class="code-block"><pre>{ "data": { "accessToken": "eyJ...", "refreshToken": "eyJ..." } }</pre></div>
+      <div class="alert alert-yellow">Refresh token rotation: mỗi lần refresh sẽ nhận về refreshToken mới, cần lưu đè lại.</div>
+    </div>
+  </div>
+
+  <!-- POST /auth/logout -->
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="ep-path">/auth/logout</span>
+      <span class="ep-desc">Đăng xuất</span>
+      <span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="alert alert-blue">Không cần body. Server blacklist access token, xóa refresh token khỏi Redis.</div>
+    </div>
+  </div>
+
+  <!-- GET /auth/me -->
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="ep-path">/auth/me</span>
+      <span class="ep-desc">Thông tin user từ token</span>
+      <span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>{ "data": { "userId": 1, "role": "customer" } }</pre></div>
+      <div class="alert alert-blue">Trả về payload từ JWT (userId, role). Để lấy full profile dùng <code>GET /users/profile</code>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- EP: USER -->
+<div id="ep-user" class="section">
+  <div class="section-title">User Endpoints</div>
+  <div class="section-desc">Quản lý hồ sơ cá nhân và tài khoản người dùng.</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="ep-path">/users/profile</span>
+      <span class="ep-desc">Lấy hồ sơ của mình</span>
+      <span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>{ "data": { "user_id":1, "username":"john", "email":"john@mail.com",
+  "full_name":"John Doe", "phone":"0901234567", "role":"customer", "created_at":"..." } }</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span>
+      <span class="ep-path">/users/profile</span>
+      <span class="ep-desc">Cập nhật hồ sơ</span>
+      <span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>full_name <span class="optional">opt</span></td><td>string</td><td>Họ tên đầy đủ</td></tr>
+      <tr><td>phone <span class="optional">opt</span></td><td>string</td><td>Số điện thoại</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span>
+      <span class="ep-path">/users/change-password</span>
+      <span class="ep-desc">Đổi mật khẩu</span>
+      <span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>current_password <span class="required">*</span></td><td>string</td><td>Mật khẩu hiện tại</td></tr>
+      <tr><td>new_password <span class="required">*</span></td><td>string</td><td>Mật khẩu mới ≥ 8 ký tự</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="ep-path">/users</span>
+      <span class="ep-desc">Danh sách tất cả users</span>
+      <span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Query</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>page <span class="optional">opt</span></td><td>number</td><td>Mặc định 1</td></tr>
+      <tr><td>limit <span class="optional">opt</span></td><td>number</td><td>Mặc định 20</td></tr>
+      <tr><td>role <span class="optional">opt</span></td><td>string</td><td>customer | admin | staff</td></tr>
+      <tr><td>search <span class="optional">opt</span></td><td>string</td><td>Tìm theo username / email / full_name</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span>
+      <span class="ep-path">/users/:id/role</span>
+      <span class="ep-desc">Thay đổi role user</span>
+      <span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>role <span class="required">*</span></td><td>string</td><td>customer | admin | staff</td></tr></table>
+    </div>
+  </div>
+</div>
+
+<!-- EP: ADDRESS -->
+<div id="ep-address" class="section">
+  <div class="section-title">Address Endpoints</div>
+  <div class="section-desc">Địa chỉ giao hàng của user. Mỗi user có tối đa nhiều địa chỉ, một địa chỉ mặc định.</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/addresses</span>
+      <span class="ep-desc">Danh sách địa chỉ của mình</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>[{ "address_id":1, "receiver_name":"Nguyễn Văn A", "phone":"0901234567",
+   "province":"Hà Nội", "district":"Cầu Giấy", "ward":"Dịch Vọng",
+   "detail":"Số 5 ngõ 10", "is_default":1 }, ...]</pre></div>
+      <div class="alert alert-blue">Kết quả sắp xếp: địa chỉ mặc định (<code>is_default=1</code>) lên đầu tiên.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/addresses</span>
+      <span class="ep-desc">Thêm địa chỉ mới</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>receiver_name <span class="required">*</span></td><td>string</td><td>Tên người nhận</td></tr>
+      <tr><td>phone <span class="required">*</span></td><td>string</td><td>SĐT người nhận</td></tr>
+      <tr><td>province <span class="required">*</span></td><td>string</td><td>Tỉnh/Thành phố</td></tr>
+      <tr><td>district <span class="required">*</span></td><td>string</td><td>Quận/Huyện</td></tr>
+      <tr><td>ward <span class="required">*</span></td><td>string</td><td>Phường/Xã</td></tr>
+      <tr><td>detail <span class="required">*</span></td><td>string</td><td>Số nhà, tên đường</td></tr>
+      <tr><td>is_default <span class="optional">opt</span></td><td>boolean</td><td>Đặt làm mặc định</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/addresses/:id</span>
+      <span class="ep-desc">Sửa địa chỉ</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Body giống POST nhưng tất cả field đều optional.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/addresses/:id</span>
+      <span class="ep-desc">Xóa địa chỉ</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-yellow">Nếu xóa địa chỉ mặc định, hệ thống tự đặt địa chỉ tiếp theo làm mặc định.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/addresses/:id/default</span>
+      <span class="ep-desc">Đặt làm địa chỉ mặc định</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Không cần body. Tự động bỏ default của địa chỉ cũ.</div></div>
+  </div>
+</div>
+
+<!-- EP: CATALOG -->
+<div id="ep-catalog" class="section">
+  <div class="section-title">Category & Brand Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/categories</span>
+      <span class="ep-desc">Danh sách danh mục (kèm subcategory)</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>[{
+  "category_id": 1, "name": "Điện tử",
+  "children": [
+    { "category_id": 2, "name": "Laptop" },
+    { "category_id": 3, "name": "Điện thoại" }
+  ]
+}]</pre></div>
+      <div class="alert alert-blue">Chỉ trả danh mục gốc (<code>parent_id = null</code>) kèm <code>children</code>. Dùng cho menu điều hướng.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/brands</span>
+      <span class="ep-desc">Danh sách thương hiệu</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>[{ "brand_id": 1, "name": "Apple", "description": null }, ...]</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/categories</span>
+      <span class="ep-desc">Tạo danh mục</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>name <span class="required">*</span></td><td>string</td><td>Tên danh mục</td></tr>
+      <tr><td>description <span class="optional">opt</span></td><td>string</td><td>Mô tả</td></tr>
+      <tr><td>parent_id <span class="optional">opt</span></td><td>number</td><td>ID danh mục cha (để tạo subcategory)</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/brands</span>
+      <span class="ep-desc">Tạo thương hiệu</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>name <span class="required">*</span></td><td>string</td><td>Tên thương hiệu</td></tr>
+      <tr><td>description <span class="optional">opt</span></td><td>string</td><td>Mô tả</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/categories/:id</span>
+      <span class="ep-desc">Sửa danh mục</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Body giống POST, tất cả optional.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/brands/:id</span>
+      <span class="ep-desc">Sửa thương hiệu</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Body giống POST, tất cả optional.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/categories/:id</span>
+      <span class="ep-desc">Xóa danh mục</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-red">Xóa sẽ thất bại nếu còn sản phẩm thuộc danh mục này (RESTRICT FK).</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/brands/:id</span>
+      <span class="ep-desc">Xóa thương hiệu</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-red">Xóa sẽ thất bại nếu còn sản phẩm thuộc brand này (RESTRICT FK).</div></div>
+  </div>
+</div>
+
+<!-- EP: PRODUCT -->
+<div id="ep-product" class="section">
+  <div class="section-title">Product Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/products</span>
+      <span class="ep-desc">Danh sách sản phẩm (filter + search + paginate)</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Query</th><th>Type</th><th>Default</th><th>Mô tả</th></tr>
+      <tr><td>page</td><td>number</td><td>1</td><td>Trang hiện tại</td></tr>
+      <tr><td>limit</td><td>number</td><td>20</td><td>Số item/trang (max 100)</td></tr>
+      <tr><td>category_id</td><td>number</td><td>—</td><td>Lọc theo danh mục</td></tr>
+      <tr><td>brand_id</td><td>number</td><td>—</td><td>Lọc theo thương hiệu</td></tr>
+      <tr><td>status</td><td>string</td><td>—</td><td>active | inactive | out_of_stock</td></tr>
+      <tr><td>search</td><td>string</td><td>—</td><td>Tìm trong name + description (FULLTEXT)</td></tr>
+      <tr><td>sort_by</td><td>string</td><td>created_at</td><td>price | created_at | name</td></tr>
+      <tr><td>order</td><td>string</td><td>desc</td><td>asc | desc</td></tr>
+      <tr><td>min_price</td><td>number</td><td>—</td><td>Giá tối thiểu (VNĐ)</td></tr>
+      <tr><td>max_price</td><td>number</td><td>—</td><td>Giá tối đa (VNĐ)</td></tr></table>
+      <div class="block-label">Response</div>
+      <div class="code-block"><pre>{
+  "data": [{
+    "product_id": 1, "name": "iPhone 16 Pro", "price": "29990000",
+    "stock_quantity": 50, "status": "active",
+    "category": { "category_id": 3, "name": "Điện thoại" },
+    "brand":    { "brand_id": 1,    "name": "Apple" },
+    "images":   [{ "image_id":1, "image_url":"/uploads/uuid.jpg", "sort_order":0 }]
+  }],
+  "pagination": { "total": 120, "page": 1, "limit": 20, "totalPages": 6 }
+}</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/products/:id</span>
+      <span class="ep-desc">Chi tiết sản phẩm</span>
+    </div>
+    <div class="ep-body">
+      <div class="alert alert-blue">Trả về đầy đủ: tất cả ảnh, thông tin category, brand. <code>images</code> sắp xếp theo <code>sort_order</code>.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/products</span>
+      <span class="ep-desc">Tạo sản phẩm</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <div class="alert alert-yellow">Content-Type: <strong>multipart/form-data</strong>. Ảnh gửi qua field <code>images</code> (tối đa 10 file).</div>
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>name <span class="required">*</span></td><td>string</td><td>Tên sản phẩm</td></tr>
+      <tr><td>category_id <span class="required">*</span></td><td>number</td><td>ID danh mục</td></tr>
+      <tr><td>brand_id <span class="required">*</span></td><td>number</td><td>ID thương hiệu</td></tr>
+      <tr><td>price <span class="required">*</span></td><td>number</td><td>Giá (VNĐ, số nguyên)</td></tr>
+      <tr><td>description <span class="optional">opt</span></td><td>string</td><td>Mô tả chi tiết</td></tr>
+      <tr><td>stock_quantity <span class="optional">opt</span></td><td>number</td><td>Tồn kho ban đầu (default 0)</td></tr>
+      <tr><td>status <span class="optional">opt</span></td><td>string</td><td>active | inactive | out_of_stock</td></tr>
+      <tr><td>images <span class="optional">opt</span></td><td>file[]</td><td>JPEG/PNG/WebP, tối đa 5MB/file</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/products/:id</span>
+      <span class="ep-desc">Cập nhật sản phẩm</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <div class="alert alert-blue">Body giống POST, tất cả optional. Ảnh mới được <strong>thêm vào</strong> (không xóa ảnh cũ). Để xóa ảnh cụ thể dùng endpoint riêng.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/products/:id/images/:imageId</span>
+      <span class="ep-desc">Xóa một ảnh sản phẩm</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-red">Xóa cả file trên disk lẫn record trong DB.</div></div>
+  </div>
+</div>
+
+<!-- EP: CART -->
+<div id="ep-cart" class="section">
+  <div class="section-title">Cart Endpoints</div>
+  <div class="section-desc">Giỏ hàng — mỗi user có đúng 1 giỏ. Tất cả endpoint đều yêu cầu auth.</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/cart</span>
+      <span class="ep-desc">Lấy giỏ hàng</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>{
+  "data": {
+    "cart_id": 1,
+    "items": [{
+      "cart_item_id": 1, "quantity": 2,
+      "product": {
+        "product_id": 5, "name": "iPhone 16", "price": "29990000",
+        "stock_quantity": 48, "status": "active",
+        "images": [{ "image_url": "/uploads/abc.jpg" }]
+      }
+    }],
+    "total": 59980000
+  }
+}</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/cart/items</span>
+      <span class="ep-desc">Thêm sản phẩm vào giỏ</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>product_id <span class="required">*</span></td><td>number</td><td>ID sản phẩm</td></tr>
+      <tr><td>quantity <span class="optional">opt</span></td><td>number</td><td>Số lượng (default 1)</td></tr></table>
+      <div class="alert alert-blue">Nếu sản phẩm đã có trong giỏ, số lượng sẽ được cộng thêm. Response trả về cart đầy đủ.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/cart/items/:itemId</span>
+      <span class="ep-desc">Cập nhật số lượng</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>quantity <span class="required">*</span></td><td>number</td><td>Số lượng mới (≥ 1)</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/cart/items/:itemId</span>
+      <span class="ep-desc">Xóa một item khỏi giỏ</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Response trả về cart sau khi xóa.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/cart</span>
+      <span class="ep-desc">Xóa toàn bộ giỏ hàng</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+</div>
+
+<!-- EP: ORDER -->
+<div id="ep-order" class="section">
+  <div class="section-title">Order Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/orders</span>
+      <span class="ep-desc">Tạo đơn hàng từ giỏ</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>address_id <span class="required">*</span></td><td>number</td><td>ID địa chỉ giao hàng</td></tr>
+      <tr><td>coupon_code <span class="optional">opt</span></td><td>string</td><td>Mã coupon</td></tr>
+      <tr><td>note <span class="optional">opt</span></td><td>string</td><td>Ghi chú cho đơn</td></tr></table>
+      <div class="alert alert-green">Tự động: kiểm tra tồn kho, tính giá, áp coupon, trừ stock, xóa giỏ hàng — tất cả trong một transaction.</div>
+      <div class="block-label">Response 201</div>
+      <div class="code-block"><pre>{
+  "data": {
+    "order_id": 42, "status": "pending",
+    "subtotal": "29990000", "discount_amount": "2999000",
+    "shipping_fee": "30000", "total_amount": "27021000",
+    "items": [{ "product_id":5, "quantity":1, "unit_price":"29990000", "subtotal":"29990000" }]
+  }
+}</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/orders/my</span>
+      <span class="ep-desc">Danh sách đơn hàng của mình</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Sắp xếp mới nhất lên đầu.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/orders/my/:id</span>
+      <span class="ep-desc">Chi tiết một đơn hàng</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/orders/my/:id/cancel</span>
+      <span class="ep-desc">Huỷ đơn hàng</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="alert alert-yellow">Chỉ hủy được khi status là <strong>pending</strong> hoặc <strong>confirmed</strong>. Tự động hoàn tồn kho.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/orders</span>
+      <span class="ep-desc">Tất cả đơn hàng</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Query</th><th>Mô tả</th></tr>
+      <tr><td>page, limit</td><td>Phân trang</td></tr>
+      <tr><td>status</td><td>Lọc theo trạng thái</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/orders/:id/status</span>
+      <span class="ep-desc">Cập nhật trạng thái đơn</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>status <span class="required">*</span></td><td>string</td><td>pending | confirmed | processing | shipping | delivered | cancelled | refunded</td></tr></table>
+    </div>
+  </div>
+</div>
+
+<!-- EP: PAYMENT -->
+<div id="ep-payment" class="section">
+  <div class="section-title">Payment Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/payments/order/:orderId/initiate</span>
+      <span class="ep-desc">Tạo giao dịch thanh toán</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="alert alert-blue">Gọi ngay sau khi tạo order. Một đơn có thể có nhiều payment record (nếu thanh toán thất bại và thử lại).</div>
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>method <span class="required">*</span></td><td>string</td><td>cod | bank_transfer | e_wallet | credit_card</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/payments/order/:orderId</span>
+      <span class="ep-desc">Lịch sử thanh toán của đơn</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/payments/:paymentId/confirm</span>
+      <span class="ep-desc">Xác nhận thanh toán</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Mô tả</th></tr>
+      <tr><td>transaction_ref <span class="optional">opt</span></td><td>Mã giao dịch từ cổng TT</td></tr></table>
+      <div class="alert alert-green">Tự động chuyển order sang <strong>confirmed</strong> khi payment được confirm.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/payments/:paymentId/refund</span>
+      <span class="ep-desc">Hoàn tiền</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+</div>
+
+<!-- EP: SHIPMENT -->
+<div id="ep-shipment" class="section">
+  <div class="section-title">Shipment Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/shipments/order/:orderId</span>
+      <span class="ep-desc">Thông tin vận chuyển đơn hàng</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <div class="code-block"><pre>{ "shipment_id":1, "tracking_code":"GHN123456", "carrier":"GHN",
+  "status":"in_transit", "shipped_at":"2024-01-15T08:00:00Z", "delivered_at":null }</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/shipments/order/:orderId</span>
+      <span class="ep-desc">Tạo shipment cho đơn</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Mô tả</th></tr>
+      <tr><td>tracking_code <span class="optional">opt</span></td><td>Mã vận đơn</td></tr>
+      <tr><td>carrier <span class="optional">opt</span></td><td>Đơn vị vận chuyển (GHN, GHTK...)</td></tr></table>
+      <div class="alert alert-blue">Order phải ở trạng thái <strong>confirmed</strong> hoặc <strong>processing</strong>. Tự chuyển order sang <strong>processing</strong>.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/shipments/:shipmentId/status</span>
+      <span class="ep-desc">Cập nhật trạng thái vận chuyển</span><span class="admin-badge">👑 Admin/Staff</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Mô tả</th></tr>
+      <tr><td>status <span class="required">*</span></td><td>preparing → picked_up → in_transit → delivered</td></tr>
+      <tr><td>tracking_code <span class="optional">opt</span></td><td>Cập nhật mã vận đơn</td></tr>
+      <tr><td>carrier <span class="optional">opt</span></td><td>Cập nhật đơn vị vận chuyển</td></tr></table>
+      <div class="alert alert-green">Khi status = <strong>in_transit</strong> → order tự chuyển sang <strong>shipping</strong>. Khi <strong>delivered</strong> → order chuyển sang <strong>delivered</strong>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- EP: REVIEW -->
+<div id="ep-review" class="section">
+  <div class="section-title">Review Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/reviews/product/:productId</span>
+      <span class="ep-desc">Đánh giá của sản phẩm</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Query</th><th>Default</th><th>Mô tả</th></tr>
+      <tr><td>page</td><td>1</td><td>Trang</td></tr>
+      <tr><td>limit</td><td>10</td><td>Số review/trang</td></tr></table>
+      <div class="code-block"><pre>{
+  "data": [{ "review_id":1, "rating":5, "comment":"Tuyệt vời!", "created_at":"...",
+             "User": { "user_id":1, "username":"john", "full_name":"John Doe" } }],
+  "pagination": { "total":24, "page":1, "limit":10 },
+  "summary": {
+    "avg_rating": "4.7",
+    "breakdown": { "1":0, "2":1, "3":2, "4":5, "5":16 }
+  }
+}</pre></div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/reviews/product/:productId</span>
+      <span class="ep-desc">Đánh giá sản phẩm</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>rating <span class="required">*</span></td><td>number</td><td>1 – 5 sao</td></tr>
+      <tr><td>comment <span class="optional">opt</span></td><td>string</td><td>Nội dung đánh giá</td></tr></table>
+      <div class="alert alert-yellow">Điều kiện: user phải có đơn hàng <strong>delivered</strong> chứa sản phẩm này. Mỗi user chỉ đánh giá 1 lần/sản phẩm.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/reviews/:reviewId</span>
+      <span class="ep-desc">Sửa đánh giá</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">Chỉ sửa được review của chính mình.</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/reviews/:reviewId</span>
+      <span class="ep-desc">Xóa đánh giá</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body"><div class="alert alert-blue">User xóa được review của mình. Admin xóa được bất kỳ review nào.</div></div>
+  </div>
+</div>
+
+<!-- EP: COUPON -->
+<div id="ep-coupon" class="section">
+  <div class="section-title">Coupon Endpoints</div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/coupons/check?code=&subtotal=</span>
+      <span class="ep-desc">Kiểm tra mã giảm giá</span><span class="auth-badge">🔐 Bearer</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Query</th><th>Mô tả</th></tr>
+      <tr><td>code <span class="required">*</span></td><td>Mã coupon</td></tr>
+      <tr><td>subtotal <span class="required">*</span></td><td>Tổng tiền hàng (VNĐ) để tính discount</td></tr></table>
+      <div class="code-block"><pre>{ "data": { "coupon_id":1, "code":"SALE10", "discount_type":"percent",
+  "discount_value":"10.00", "discountAmount": 2999000 } }</pre></div>
+      <div class="alert alert-blue">Gọi khi user nhập mã coupon ở trang checkout để preview số tiền được giảm trước khi đặt hàng.</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method GET">GET</span><span class="ep-path">/coupons</span>
+      <span class="ep-desc">Danh sách coupon</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method POST">POST</span><span class="ep-path">/coupons</span>
+      <span class="ep-desc">Tạo coupon</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body">
+      <table><tr><th>Field</th><th>Type</th><th>Mô tả</th></tr>
+      <tr><td>code <span class="required">*</span></td><td>string</td><td>Mã coupon (duy nhất)</td></tr>
+      <tr><td>discount_type <span class="required">*</span></td><td>string</td><td>percent | fixed</td></tr>
+      <tr><td>discount_value <span class="required">*</span></td><td>number</td><td>Giá trị (% hoặc VNĐ)</td></tr>
+      <tr><td>start_date <span class="required">*</span></td><td>date</td><td>YYYY-MM-DD</td></tr>
+      <tr><td>end_date <span class="required">*</span></td><td>date</td><td>YYYY-MM-DD</td></tr>
+      <tr><td>quantity <span class="required">*</span></td><td>number</td><td>Số lượt sử dụng tối đa</td></tr>
+      <tr><td>min_order_amount <span class="optional">opt</span></td><td>number</td><td>Giá trị đơn tối thiểu để áp</td></tr>
+      <tr><td>status <span class="optional">opt</span></td><td>string</td><td>active | inactive (default active)</td></tr></table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span><span class="ep-path">/coupons/:id</span>
+      <span class="ep-desc">Sửa coupon</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="ep-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span><span class="ep-path">/coupons/:id</span>
+      <span class="ep-desc">Xóa coupon</span><span class="admin-badge">👑 Admin</span>
+    </div>
+    <div class="ep-body"></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function toggle(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function filterEndpoints(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.endpoint').forEach(ep => {
+    const text = ep.textContent.toLowerCase();
+    ep.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+}
+
+// Open first endpoint in each section by default for overview sections
+document.querySelectorAll('.ep-header').forEach((h, i) => {
+  if (i < 2) h.nextElementSibling.classList.add('open');
+});
+</script>
+</body>
+</html>
