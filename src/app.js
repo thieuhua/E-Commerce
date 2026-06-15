@@ -21,7 +21,8 @@ const paymentRoutes  = require('./modules/payment/payment.routes');
 const shipmentRoutes = require('./modules/shipment/shipment.routes');
 const reviewRoutes   = require('./modules/review/review.routes');
 const couponRoutes   = require('./modules/coupon/coupon.routes');
-const userRoutes     = require('./modules/user/user.routes');
+const userRoutes     = require('./modules/user/user.routes')
+const adminRoutes    = require('./modules/admin/admin.routes')
 
 const app = express();
 
@@ -52,7 +53,8 @@ app.use('/api/payments',  paymentRoutes);
 app.use('/api/shipments', shipmentRoutes);
 app.use('/api/reviews',   reviewRoutes);
 app.use('/api/coupons',   couponRoutes);
-app.use('/api/users',     userRoutes);
+app.use('/api/users',     userRoutes)
+app.use('/api/admin',     adminRoutes);
 
 app.get('/health', (req, res) =>
   res.json({ status: 'ok', uptime: process.uptime(), env: process.env.NODE_ENV }));
@@ -66,7 +68,7 @@ const start = async () => {
     await connectDB();
     await connectRedis();
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   } catch (err) {
     console.error('Startup error:', err);
     process.exit(1);
